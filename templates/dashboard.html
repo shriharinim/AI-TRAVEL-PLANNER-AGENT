@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Travel Dashboard — WanderAI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Page header -->
+  <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="page-title"><i class="bi bi-grid-1x2-fill me-2 text-accent"></i>Travel Dashboard</h1>
+      <p class="page-sub">Your complete trip overview in one place</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/itinerary" class="btn btn-primary rounded-pill">
+        <i class="bi bi-plus-lg me-1"></i>New Trip
+      </a>
+      <button class="btn btn-outline-secondary rounded-pill" onclick="printDashboard()">
+        <i class="bi bi-printer me-1"></i>Print
+      </button>
+    </div>
+  </div>
+
+  <!-- ── NO TRIP STATE ── -->
+  <div id="noTripState" class="empty-state text-center py-5 {% if trip_data %}d-none{% endif %}">
+    <div class="empty-icon"><i class="bi bi-map"></i></div>
+    <h3>No trip planned yet</h3>
+    <p class="text-muted">Use the AI Chat or Itinerary Planner to create your first trip and it'll appear here.</p>
+    <div class="d-flex gap-3 justify-content-center mt-3">
+      <a href="/chat" class="btn btn-primary rounded-pill"><i class="bi bi-chat-dots me-1"></i>Chat with AI</a>
+      <a href="/itinerary" class="btn btn-outline-primary rounded-pill"><i class="bi bi-journal-plus me-1"></i>Build Itinerary</a>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD CONTENT ── -->
+  <div id="dashboardContent" class="{% if not trip_data %}d-none{% endif %}">
+
+    <!-- KPI Cards row -->
+    <div class="row g-3 mb-4" id="kpiRow">
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Destination</div>
+            <div class="kpi-value" id="kpiDestination">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon"><i class="bi bi-calendar-check-fill"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Duration</div>
+            <div class="kpi-value" id="kpiDuration">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-icon"><i class="bi bi-wallet-fill"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Budget</div>
+            <div class="kpi-value" id="kpiBudget">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Travelers</div>
+            <div class="kpi-value" id="kpiTravelers">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Left column -->
+      <div class="col-lg-8">
+
+        <!-- Itinerary card -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-header">
+            <i class="bi bi-journal-richtext text-accent me-2"></i>
+            <span>AI-Generated Itinerary</span>
+            <a href="/itinerary" class="ms-auto btn btn-xs btn-outline-accent rounded-pill">Edit</a>
+          </div>
+          <div class="dash-card-body">
+            <div id="itineraryContent" class="markdown-render">
+              <p class="text-muted">Generate an itinerary to see it here.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget breakdown -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-header">
+            <i class="bi bi-pie-chart-fill text-green me-2"></i>
+            <span>Budget Breakdown</span>
+          </div>
+          <div class="dash-card-body">
+            <div class="row g-3" id="budgetBreakdown">
+              {% set cats = [
+                ("Accommodation","bi-house-fill","40"),
+                ("Food & Dining","bi-egg-fried","20"),
+                ("Transport","bi-airplane-fill","20"),
+                ("Activities","bi-ticket-fill","15"),
+                ("Shopping","bi-bag-fill","5"),
+              ] %}
+              {% for label, icon, pct in cats %}
+              <div class="col-6 col-md-4">
+                <div class="budget-item">
+                  <i class="bi {{ icon }} text-accent"></i>
+                  <span class="budget-label">{{ label }}</span>
+                  <div class="progress budget-progress">
+                    <div class="progress-bar" style="width: {{ pct }}%"></div>
+                  </div>
+                  <span class="budget-pct text-muted small">~{{ pct }}%</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right column -->
+      <div class="col-lg-4">
+
+        <!-- Weather widget -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-header">
+            <i class="bi bi-cloud-sun-fill text-warning me-2"></i>
+            <span>Weather & Season</span>
+          </div>
+          <div class="dash-card-body">
+            <div id="weatherWidget">
+              <div class="weather-placeholder text-center py-3">
+                <i class="bi bi-cloud-sun fs-2 text-muted"></i>
+                <p class="text-muted small mt-2">Weather info will appear after you plan your trip.</p>
+                <button class="btn btn-sm btn-outline-primary rounded-pill mt-1" onclick="fetchWeather()">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Load Weather Advice
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Travel checklist -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-header">
+            <i class="bi bi-check2-square text-success me-2"></i>
+            <span>Travel Checklist</span>
+            <button class="ms-auto btn btn-xs btn-ghost" onclick="resetChecklist()" title="Reset">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+          </div>
+          <div class="dash-card-body">
+            <div class="checklist" id="travelChecklist">
+              {% set checklist = [
+                "Passport & Visa documents",
+                "Flight tickets printed/saved",
+                "Hotel confirmation",
+                "Travel insurance policy",
+                "Local currency exchanged",
+                "International SIM / roaming",
+                "Medications & prescriptions",
+                "Chargers & adapters",
+                "Copies of all documents",
+                "Emergency contacts saved",
+              ] %}
+              {% for item in checklist %}
+              <label class="checklist-item">
+                <input type="checkbox" onchange="saveChecklist()" />
+                <span class="checkmark"></span>
+                <span class="check-label">{{ item }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Transport summary -->
+        <div class="dash-card mb-4">
+          <div class="dash-card-header">
+            <i class="bi bi-bus-front-fill text-purple me-2"></i>
+            <span>Transport Summary</span>
+          </div>
+          <div class="dash-card-body">
+            <div id="transportSummary">
+              <div class="transport-row">
+                <i class="bi bi-airplane text-accent"></i>
+                <span>Flight preference: <strong id="flightPref">—</strong></span>
+              </div>
+              <div class="transport-row">
+                <i class="bi bi-train-front text-green"></i>
+                <span>Local transport: <strong id="localTransport">—</strong></span>
+              </div>
+              <div class="transport-row">
+                <i class="bi bi-house-door text-orange"></i>
+                <span>Accommodation: <strong id="accommodationType">—</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const tripData = {{ trip_data | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

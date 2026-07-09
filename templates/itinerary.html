@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Itinerary Planner — WanderAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page header -->
+  <div class="page-header text-center mb-5">
+    <span class="section-badge">AI-Powered</span>
+    <h1 class="page-title mt-2"><i class="bi bi-journal-richtext me-2 text-accent"></i>Trip Itinerary Planner</h1>
+    <p class="page-sub">Fill in your trip details and IBM Granite will craft a complete day-by-day itinerary.</p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── FORM PANEL ── -->
+    <div class="col-lg-5">
+      <div class="form-panel">
+        <h5 class="form-panel-title"><i class="bi bi-sliders me-2"></i>Trip Details</h5>
+
+        <form id="itineraryForm" onsubmit="generateItinerary(event)">
+
+          <div class="mb-3">
+            <label class="form-label fw-500">Destination <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+              <input type="text" class="form-control" id="destination" placeholder="e.g. Tokyo, Japan" required />
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-500">Trip Duration <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                <input type="number" class="form-control" id="days" min="1" max="30" value="7" required />
+                <span class="input-group-text">days</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-500">Travelers <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-people"></i></span>
+                <input type="number" class="form-control" id="travelers" min="1" max="20" value="2" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-500">Budget Tier <span class="text-danger">*</span></label>
+            <div class="budget-tier-selector" id="budgetTier">
+              <button type="button" class="tier-btn" data-tier="budget" onclick="selectTier(this)">
+                <i class="bi bi-backpack"></i>
+                <span>Budget</span>
+                <small>&lt;$50/day</small>
+              </button>
+              <button type="button" class="tier-btn active" data-tier="mid-range" onclick="selectTier(this)">
+                <i class="bi bi-suitcase"></i>
+                <span>Mid-range</span>
+                <small>$50–$200/day</small>
+              </button>
+              <button type="button" class="tier-btn" data-tier="luxury" onclick="selectTier(this)">
+                <i class="bi bi-gem"></i>
+                <span>Luxury</span>
+                <small>$200+/day</small>
+              </button>
+            </div>
+            <input type="hidden" id="budgetValue" value="mid-range" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-500">Travel Interests <span class="text-danger">*</span></label>
+            <div class="interest-chips" id="interestChips">
+              {% set interests = ["Culture","Food","Adventure","Beach","Nature","History","Shopping","Nightlife","Art","Wellness","Sports","Architecture"] %}
+              {% for interest in interests %}
+              <button type="button" class="interest-chip" onclick="toggleInterest(this)" data-interest="{{ interest }}">
+                {{ interest }}
+              </button>
+              {% endfor %}
+            </div>
+            <input type="hidden" id="selectedInterests" />
+            <small class="text-muted">Select at least one interest</small>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-500">Transport Preference</label>
+              <select class="form-select" id="transport">
+                <option value="flexible">Flexible</option>
+                <option value="public transport">Public Transport</option>
+                <option value="rental car">Rental Car</option>
+                <option value="private driver">Private Driver</option>
+                <option value="bicycle">Bicycle / Walk</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-500">Accommodation</label>
+              <select class="form-select" id="accommodation">
+                <option value="hotel">Hotel</option>
+                <option value="hostel">Hostel</option>
+                <option value="airbnb">Airbnb / Apartment</option>
+                <option value="resort">Resort</option>
+                <option value="boutique hotel">Boutique Hotel</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 btn-lg rounded-pill" id="generateBtn">
+            <i class="bi bi-stars me-2"></i>Generate AI Itinerary
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── RESULT PANEL ── -->
+    <div class="col-lg-7">
+      <!-- Placeholder -->
+      <div class="result-placeholder text-center py-5" id="itineraryPlaceholder">
+        <div class="placeholder-anim">
+          <i class="bi bi-journal-richtext"></i>
+        </div>
+        <h4 class="mt-3">Your Itinerary Will Appear Here</h4>
+        <p class="text-muted">Fill in your trip details on the left and click <strong>Generate AI Itinerary</strong>.</p>
+      </div>
+
+      <!-- Loading state -->
+      <div class="result-loading text-center py-5 d-none" id="itineraryLoading">
+        <div class="ai-spinner mb-3"></div>
+        <h5>IBM Granite is crafting your itinerary…</h5>
+        <p class="text-muted small" id="loadingFact"></p>
+      </div>
+
+      <!-- Result card -->
+      <div class="result-card d-none" id="itineraryResult">
+        <div class="result-header">
+          <div>
+            <h4 class="result-title" id="resultTitle">—</h4>
+            <p class="result-meta" id="resultMeta">—</p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="copyItinerary()">
+              <i class="bi bi-copy me-1"></i>Copy
+            </button>
+            <a href="/dashboard" class="btn btn-sm btn-primary rounded-pill">
+              <i class="bi bi-grid me-1"></i>Dashboard
+            </a>
+          </div>
+        </div>
+        <div class="result-body markdown-render" id="itineraryOutput"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const loadingFacts = [
+  "Japan has over 300 cherry blossom viewing spots 🌸",
+  "The Eiffel Tower was only meant to stand for 20 years 🗼",
+  "Iceland runs entirely on renewable energy ♻️",
+  "New Zealand has more sheep than people 🐑",
+  "Norway's coastline is over 100,000 km long 🏔️",
+  "Bhutan measures happiness as a national metric 😊",
+  "Singapore has no natural fresh water sources 💧",
+  "Rome has more fountains than any other city ⛲",
+];
+
+let selectedInterests = [];
+let selectedTier = "mid-range";
+
+function selectTier(btn) {
+  document.querySelectorAll('.tier-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTier = btn.dataset.tier;
+  document.getElementById('budgetValue').value = selectedTier;
+}
+
+function toggleInterest(btn) {
+  btn.classList.toggle('active');
+  const interest = btn.dataset.interest;
+  if (btn.classList.contains('active')) {
+    selectedInterests.push(interest);
+  } else {
+    selectedInterests = selectedInterests.filter(i => i !== interest);
+  }
+  document.getElementById('selectedInterests').value = selectedInterests.join(', ');
+}
+
+async function generateItinerary(e) {
+  e.preventDefault();
+  const destination = document.getElementById('destination').value.trim();
+  const days        = document.getElementById('days').value;
+  const travelers   = document.getElementById('travelers').value;
+  const budget      = document.getElementById('budgetValue').value;
+  const transport   = document.getElementById('transport').value;
+  const accommodation = document.getElementById('accommodation').value;
+
+  if (!destination) return WanderToast.error('Please enter a destination.');
+  if (selectedInterests.length === 0) return WanderToast.error('Please select at least one interest.');
+
+  document.getElementById('itineraryPlaceholder').classList.add('d-none');
+  document.getElementById('itineraryResult').classList.add('d-none');
+  const loading = document.getElementById('itineraryLoading');
+  loading.classList.remove('d-none');
+
+  // Rotate travel facts
+  let factIdx = 0;
+  const factEl = document.getElementById('loadingFact');
+  const factInterval = setInterval(() => {
+    factEl.textContent = '✈️ Did you know? ' + loadingFacts[factIdx % loadingFacts.length];
+    factIdx++;
+  }, 3000);
+
+  try {
+    const res = await fetch('/api/itinerary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destination, days: parseInt(days), budget, travelers: parseInt(travelers),
+        interests: selectedInterests.join(', '), transport, accommodation,
+      }),
+    });
+    const data = await res.json();
+    clearInterval(factInterval);
+    loading.classList.add('d-none');
+
+    if (data.error) { WanderToast.error(data.error); return; }
+
+    document.getElementById('resultTitle').textContent = `${destination} — ${days}-Day Itinerary`;
+    document.getElementById('resultMeta').textContent  =
+      `Generated on ${data.generated_at} • ${travelers} traveler(s) • ${budget} budget`;
+    document.getElementById('itineraryOutput').innerHTML = markdownToHtml(data.itinerary);
+    document.getElementById('itineraryResult').classList.remove('d-none');
+    WanderToast.success('Itinerary generated successfully!');
+  } catch (err) {
+    clearInterval(factInterval);
+    loading.classList.add('d-none');
+    WanderToast.error('Failed to generate itinerary. Please try again.');
+  }
+}
+
+function copyItinerary() {
+  const text = document.getElementById('itineraryOutput').innerText;
+  navigator.clipboard.writeText(text).then(() => WanderToast.success('Copied to clipboard!'));
+}
+</script>
+{% endblock %}

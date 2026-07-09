@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block title %}My Travel Profile — WanderAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="page-header text-center mb-5">
+    <span class="section-badge">Personalise Your Experience</span>
+    <h1 class="page-title mt-2"><i class="bi bi-person-circle me-2 text-purple"></i>Travel Profile</h1>
+    <p class="page-sub">Save your preferences so WanderAI can personalise every recommendation just for you.</p>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+
+    <!-- ── AVATAR & STATS ── -->
+    <div class="col-lg-4">
+      <div class="profile-card text-center">
+        <div class="profile-avatar-wrap mx-auto mb-3">
+          <div class="profile-avatar" id="profileAvatarDisplay">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div class="avatar-edit-btn">
+            <i class="bi bi-pencil-fill"></i>
+          </div>
+        </div>
+        <h4 id="profileNameDisplay" class="fw-700">Traveler</h4>
+        <p class="text-muted small" id="profileEmailDisplay">No email set</p>
+
+        <div class="profile-stats row g-2 mt-3">
+          <div class="col-4">
+            <div class="pstat">
+              <div class="pstat-val" id="statTrips">0</div>
+              <div class="pstat-label">Trips</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="pstat">
+              <div class="pstat-val" id="statCountries">0</div>
+              <div class="pstat-label">Countries</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="pstat">
+              <div class="pstat-val" id="statDays">0</div>
+              <div class="pstat-label">Days Away</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="traveler-badge mt-3" id="travelerBadge">
+          <i class="bi bi-patch-check-fill me-1"></i>Wanderer
+        </div>
+      </div>
+
+      <!-- Personality quiz link -->
+      <div class="quiz-card mt-3 text-center p-4">
+        <i class="bi bi-question-circle fs-2 text-accent mb-2 d-block"></i>
+        <h6 class="fw-600">What's Your Travel Style?</h6>
+        <p class="text-muted small">Chat with WanderAI to discover your travel personality.</p>
+        <a href="/chat?interest=travel+style+quiz" class="btn btn-sm btn-outline-accent rounded-pill">
+          Take the Quiz <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── PROFILE FORM ── -->
+    <div class="col-lg-8">
+      <div class="form-panel">
+        <h5 class="form-panel-title mb-4"><i class="bi bi-person-lines-fill me-2"></i>Personal Details</h5>
+
+        <form id="profileForm" onsubmit="saveProfile(event)">
+
+          <!-- Basic info -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-500">Full Name</label>
+              <input type="text" class="form-control" id="pfName" placeholder="Your name" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-500">Email</label>
+              <input type="email" class="form-control" id="pfEmail" placeholder="you@example.com" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-500">Home Country</label>
+              <input type="text" class="form-control" id="pfCountry" placeholder="e.g. United States" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-500">Passport Nationality</label>
+              <input type="text" class="form-control" id="pfPassport" placeholder="e.g. American" />
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <h6 class="fw-600 mb-3"><i class="bi bi-compass me-2 text-accent"></i>Travel Preferences</h6>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-500">Typical Budget Style</label>
+              <select class="form-select" id="pfBudget">
+                <option value="">Select...</option>
+                <option value="budget">Budget Traveler (&lt;$50/day)</option>
+                <option value="mid-range">Mid-range ($50–$200/day)</option>
+                <option value="luxury">Luxury ($200+/day)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-500">Preferred Trip Duration</label>
+              <select class="form-select" id="pfDuration">
+                <option value="">Select...</option>
+                <option value="weekend">Weekend (2–3 days)</option>
+                <option value="short">Short trip (4–6 days)</option>
+                <option value="week">1 week</option>
+                <option value="2weeks">2 weeks</option>
+                <option value="month">1 month+</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-500">Preferred Transport</label>
+              <select class="form-select" id="pfTransport">
+                <option value="">Select...</option>
+                <option value="public transport">Public Transport</option>
+                <option value="rental car">Rental Car</option>
+                <option value="private driver">Private Driver / Taxi</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-500">Accommodation Style</label>
+              <select class="form-select" id="pfAccommodation">
+                <option value="">Select...</option>
+                <option value="hostel">Hostel / Dorm</option>
+                <option value="budget hotel">Budget Hotel</option>
+                <option value="mid-range hotel">Mid-range Hotel</option>
+                <option value="luxury hotel">Luxury Hotel</option>
+                <option value="airbnb">Airbnb / Apartment</option>
+                <option value="resort">Resort</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Interests -->
+          <div class="mb-3">
+            <label class="form-label fw-500"><i class="bi bi-heart me-1"></i>Travel Interests</label>
+            <div class="interest-chips" id="pfInterestChips">
+              {% set interests = ["Culture","Food","Adventure","Beach","Nature","History","Shopping","Nightlife","Art","Wellness","Sports","Architecture","Photography","Music","Wildlife"] %}
+              {% for interest in interests %}
+              <button type="button" class="interest-chip" onclick="togglePfInterest(this)" data-interest="{{ interest }}">
+                {{ interest }}
+              </button>
+              {% endfor %}
+            </div>
+            <input type="hidden" id="pfInterests" />
+          </div>
+
+          <!-- Dream destinations -->
+          <div class="mb-3">
+            <label class="form-label fw-500"><i class="bi bi-star me-1"></i>Dream Destinations</label>
+            <input type="text" class="form-control" id="pfDreams"
+              placeholder="e.g. Japan, Iceland, Patagonia, Maldives" />
+            <small class="text-muted">Comma-separated list of places you want to visit</small>
+          </div>
+
+          <!-- Dietary preferences -->
+          <div class="mb-3">
+            <label class="form-label fw-500"><i class="bi bi-egg-fried me-1"></i>Dietary Preferences</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for diet in ["Vegetarian","Vegan","Halal","Kosher","Gluten-free","No restrictions"] %}
+              <label class="diet-toggle">
+                <input type="checkbox" name="diet" value="{{ diet }}" onchange="saveDiet()" />
+                <span>{{ diet }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-4">
+            <label class="form-label fw-500">Additional Notes for WanderAI</label>
+            <textarea class="form-control" id="pfNotes" rows="3"
+              placeholder="e.g. I travel with young children, I have mobility limitations, I'm allergic to nuts…"></textarea>
+          </div>
+
+          <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary rounded-pill px-4">
+              <i class="bi bi-check-circle me-1"></i>Save Profile
+            </button>
+            <button type="button" class="btn btn-outline-danger rounded-pill px-4" onclick="clearProfile()">
+              <i class="bi bi-trash me-1"></i>Clear
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let pfInterests = [];
+
+function togglePfInterest(btn) {
+  btn.classList.toggle('active');
+  const v = btn.dataset.interest;
+  pfInterests = btn.classList.contains('active')
+    ? [...pfInterests, v]
+    : pfInterests.filter(i => i !== v);
+  document.getElementById('pfInterests').value = pfInterests.join(', ');
+}
+
+function saveDiet() {
+  // handled in saveProfile via form serialize
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+
+  const diets = [...document.querySelectorAll('input[name="diet"]:checked')].map(i => i.value);
+  const profile = {
+    name:          document.getElementById('pfName').value.trim(),
+    email:         document.getElementById('pfEmail').value.trim(),
+    country:       document.getElementById('pfCountry').value.trim(),
+    passport:      document.getElementById('pfPassport').value.trim(),
+    budget:        document.getElementById('pfBudget').value,
+    duration:      document.getElementById('pfDuration').value,
+    transport:     document.getElementById('pfTransport').value,
+    accommodation: document.getElementById('pfAccommodation').value,
+    interests:     pfInterests,
+    dreams:        document.getElementById('pfDreams').value.trim(),
+    dietary:       diets,
+    notes:         document.getElementById('pfNotes').value.trim(),
+  };
+
+  try {
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile),
+    });
+    if (res.ok) {
+      WanderToast.success('Profile saved successfully!');
+      updateProfileDisplay(profile);
+      localStorage.setItem('wanderai_profile', JSON.stringify(profile));
+    }
+  } catch (err) {
+    WanderToast.error('Failed to save profile.');
+  }
+}
+
+function updateProfileDisplay(p) {
+  if (p.name) document.getElementById('profileNameDisplay').textContent = p.name;
+  if (p.email) document.getElementById('profileEmailDisplay').textContent = p.email;
+}
+
+function clearProfile() {
+  document.getElementById('profileForm').reset();
+  pfInterests = [];
+  document.querySelectorAll('.interest-chip').forEach(c => c.classList.remove('active'));
+  localStorage.removeItem('wanderai_profile');
+  WanderToast.info('Profile cleared.');
+}
+
+// Load saved profile on page load
+(async () => {
+  // Try server session first
+  try {
+    const res  = await fetch('/api/profile');
+    const data = await res.json();
+    if (data.profile && data.profile.name) {
+      loadProfileIntoForm(data.profile);
+      return;
+    }
+  } catch {}
+
+  // Fall back to localStorage
+  const saved = localStorage.getItem('wanderai_profile');
+  if (saved) loadProfileIntoForm(JSON.parse(saved));
+})();
+
+function loadProfileIntoForm(p) {
+  if (!p) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  setVal('pfName',          p.name);
+  setVal('pfEmail',         p.email);
+  setVal('pfCountry',       p.country);
+  setVal('pfPassport',      p.passport);
+  setVal('pfBudget',        p.budget);
+  setVal('pfDuration',      p.duration);
+  setVal('pfTransport',     p.transport);
+  setVal('pfAccommodation', p.accommodation);
+  setVal('pfDreams',        p.dreams);
+  setVal('pfNotes',         p.notes);
+
+  if (p.interests) {
+    pfInterests = Array.isArray(p.interests) ? p.interests : p.interests.split(',').map(s => s.trim());
+    pfInterests.forEach(interest => {
+      const btn = document.querySelector(`#pfInterestChips [data-interest="${interest}"]`);
+      if (btn) btn.classList.add('active');
+    });
+  }
+  if (p.dietary) {
+    p.dietary.forEach(d => {
+      const cb = document.querySelector(`input[name="diet"][value="${d}"]`);
+      if (cb) cb.checked = true;
+    });
+  }
+  updateProfileDisplay(p);
+}
+</script>
+{% endblock %}

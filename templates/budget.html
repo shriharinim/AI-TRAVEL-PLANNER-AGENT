@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Budget Planner — WanderAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="page-header text-center mb-5">
+    <span class="section-badge">Smart Budgeting</span>
+    <h1 class="page-title mt-2"><i class="bi bi-wallet2 me-2 text-green"></i>Trip Budget Planner</h1>
+    <p class="page-sub">Enter your trip details and budget — IBM Granite will optimise every dollar.</p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── FORM ── -->
+    <div class="col-lg-5">
+      <div class="form-panel">
+        <h5 class="form-panel-title"><i class="bi bi-sliders me-2"></i>Budget Parameters</h5>
+
+        <form id="budgetForm" onsubmit="generateBudget(event)">
+
+          <div class="mb-3">
+            <label class="form-label fw-500">Destination <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+              <input type="text" class="form-control" id="budDestination" placeholder="e.g. Paris, France" required />
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-500">Duration</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                <input type="number" class="form-control" id="budDays" min="1" max="60" value="7" />
+                <span class="input-group-text">days</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-500">Travelers</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-people"></i></span>
+                <input type="number" class="form-control" id="budTravelers" min="1" max="20" value="2" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Total budget slider -->
+          <div class="mb-3">
+            <label class="form-label fw-500 d-flex justify-content-between">
+              Total Budget (USD)
+              <strong class="text-accent" id="budgetDisplay">$2,000</strong>
+            </label>
+            <input type="range" class="form-range budget-range" id="budgetRange"
+              min="200" max="20000" step="100" value="2000"
+              oninput="updateBudgetDisplay(this.value)" />
+            <div class="d-flex justify-content-between text-muted small">
+              <span>$200</span><span>$5,000</span><span>$10,000</span><span>$20,000</span>
+            </div>
+            <input type="hidden" id="budgetTotal" value="2000" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-500">Travel Style</label>
+            <div class="budget-tier-selector">
+              <button type="button" class="tier-btn" data-tier="budget" onclick="selectBudgetStyle(this)">
+                <i class="bi bi-backpack"></i><span>Budget</span>
+              </button>
+              <button type="button" class="tier-btn active" data-tier="mid-range" onclick="selectBudgetStyle(this)">
+                <i class="bi bi-suitcase"></i><span>Mid-range</span>
+              </button>
+              <button type="button" class="tier-btn" data-tier="luxury" onclick="selectBudgetStyle(this)">
+                <i class="bi bi-gem"></i><span>Luxury</span>
+              </button>
+            </div>
+            <input type="hidden" id="travelStyle" value="mid-range" />
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 btn-lg rounded-pill" id="budgetBtn">
+            <i class="bi bi-calculator me-2"></i>Calculate Trip Budget
+          </button>
+        </form>
+
+        <!-- Quick estimate summary -->
+        <div class="estimate-preview mt-4 p-3 rounded-3 bg-surface" id="estimatePreview">
+          <h6 class="fw-600 mb-2"><i class="bi bi-lightning-fill text-warning me-1"></i>Quick Estimate</h6>
+          <div class="row g-2 text-center" id="quickEstRows">
+            <div class="col-6">
+              <div class="est-item">
+                <div class="est-label text-muted small">Per Person / Day</div>
+                <div class="est-value fw-700" id="estPerDay">—</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="est-item">
+                <div class="est-label text-muted small">Total Days</div>
+                <div class="est-value fw-700" id="estDays">7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESULT ── -->
+    <div class="col-lg-7">
+      <div class="result-placeholder text-center py-5" id="budgetPlaceholder">
+        <div class="placeholder-anim"><i class="bi bi-wallet2"></i></div>
+        <h4 class="mt-3">Budget Plan Will Appear Here</h4>
+        <p class="text-muted">Enter your trip details and click <strong>Calculate Trip Budget</strong>.</p>
+      </div>
+
+      <div class="result-loading text-center py-5 d-none" id="budgetLoading">
+        <div class="ai-spinner mb-3"></div>
+        <h5>Optimising your budget…</h5>
+        <p class="text-muted small">IBM Granite is calculating the best allocation for your trip.</p>
+      </div>
+
+      <div class="result-card d-none" id="budgetResult">
+        <div class="result-header">
+          <div>
+            <h4 class="result-title" id="budResultTitle">—</h4>
+            <p class="result-meta" id="budResultMeta">—</p>
+          </div>
+          <button class="btn btn-sm btn-outline-success rounded-pill" onclick="copyBudget()">
+            <i class="bi bi-copy me-1"></i>Copy
+          </button>
+        </div>
+        <div class="result-body markdown-render" id="budgetOutput"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let budgetStyle = 'mid-range';
+
+function updateBudgetDisplay(val) {
+  const num = parseInt(val);
+  document.getElementById('budgetDisplay').textContent = '$' + num.toLocaleString();
+  document.getElementById('budgetTotal').value = num;
+
+  const days      = parseInt(document.getElementById('budDays').value) || 7;
+  const travelers = parseInt(document.getElementById('budTravelers').value) || 1;
+  const perDay    = Math.round(num / days / travelers);
+  document.getElementById('estPerDay').textContent = '$' + perDay.toLocaleString();
+  document.getElementById('estDays').textContent    = days;
+}
+
+// Keep estimate preview in sync
+['budDays','budTravelers'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () =>
+    updateBudgetDisplay(document.getElementById('budgetRange').value)
+  );
+});
+
+function selectBudgetStyle(btn) {
+  document.querySelectorAll('#budgetForm .tier-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  budgetStyle = btn.dataset.tier;
+  document.getElementById('travelStyle').value = budgetStyle;
+}
+
+async function generateBudget(e) {
+  e.preventDefault();
+  const destination  = document.getElementById('budDestination').value.trim();
+  const days         = parseInt(document.getElementById('budDays').value);
+  const travelers    = parseInt(document.getElementById('budTravelers').value);
+  const budget_total = parseInt(document.getElementById('budgetTotal').value);
+
+  if (!destination) return WanderToast.error('Please enter a destination.');
+
+  document.getElementById('budgetPlaceholder').classList.add('d-none');
+  document.getElementById('budgetResult').classList.add('d-none');
+  document.getElementById('budgetLoading').classList.remove('d-none');
+
+  try {
+    const res = await fetch('/api/budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination, days, travelers, budget_total, travel_style: budgetStyle }),
+    });
+    const data = await res.json();
+    document.getElementById('budgetLoading').classList.add('d-none');
+
+    if (data.error) { WanderToast.error(data.error); return; }
+
+    document.getElementById('budResultTitle').textContent =
+      `${destination} — ${days}-Day Budget Plan`;
+    document.getElementById('budResultMeta').textContent =
+      `Total budget: $${budget_total.toLocaleString()} • ${travelers} traveler(s) • ${budgetStyle} style`;
+    document.getElementById('budgetOutput').innerHTML = markdownToHtml(data.budget_plan);
+    document.getElementById('budgetResult').classList.remove('d-none');
+    WanderToast.success('Budget plan ready!');
+  } catch (err) {
+    document.getElementById('budgetLoading').classList.add('d-none');
+    WanderToast.error('Failed to generate budget plan. Please try again.');
+  }
+}
+
+function copyBudget() {
+  const text = document.getElementById('budgetOutput').innerText;
+  navigator.clipboard.writeText(text).then(() => WanderToast.success('Copied to clipboard!'));
+}
+
+// Init
+updateBudgetDisplay(2000);
+</script>
+{% endblock %}

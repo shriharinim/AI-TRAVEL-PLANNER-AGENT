@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}AI Travel Chat — WanderAI{% endblock %}
+
+{% block extra_head %}
+<style>
+  #mainContent { height: calc(100vh - 70px); display: flex; flex-direction: column; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout d-flex h-100">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="chat-sidebar" id="chatSidebar">
+    <div class="sidebar-header">
+      <h6 class="sidebar-title"><i class="bi bi-lightning-fill me-2 text-warning"></i>Quick Actions</h6>
+    </div>
+
+    <!-- Quick prompt chips -->
+    <div class="quick-prompts">
+      <p class="sidebar-label">Suggested Prompts</p>
+      {% set prompts = [
+        ("bi-compass", "Recommend a destination for beach + culture"),
+        ("bi-calendar-week", "Plan a 7-day Europe trip on $1500"),
+        ("bi-wallet2", "Budget breakdown for Tokyo 5 days"),
+        ("bi-cloud-sun", "Best time to visit Bali?"),
+        ("bi-backpack", "Solo travel tips for Southeast Asia"),
+        ("bi-heart", "Romantic getaway under $2000"),
+        ("bi-people-fill", "Family trip to Disney World"),
+        ("bi-shield-check", "Travel safety tips for solo women"),
+      ] %}
+      {% for icon, text in prompts %}
+      <button class="quick-prompt-btn" onclick="injectPrompt(this)" data-prompt="{{ text }}">
+        <i class="bi {{ icon }} me-2"></i>{{ text }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- Chat controls -->
+    <div class="sidebar-controls mt-auto">
+      <button class="btn btn-sm w-100 btn-outline-danger rounded-pill mb-2" onclick="clearChat()">
+        <i class="bi bi-trash me-1"></i>Clear Chat
+      </button>
+      <a href="/dashboard" class="btn btn-sm w-100 btn-outline-accent rounded-pill">
+        <i class="bi bi-grid me-1"></i>View Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- ── CHAT MAIN ── -->
+  <div class="chat-main flex-grow-1 d-flex flex-column">
+
+    <!-- Chat header bar -->
+    <div class="chat-topbar d-flex align-items-center justify-content-between px-4 py-3">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-ghost d-lg-none" id="sidebarToggle">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div class="ai-avatar-sm"><i class="bi bi-airplane-fill"></i></div>
+        <div>
+          <div class="fw-600">WanderAI Assistant</div>
+          <div class="text-muted small d-flex align-items-center gap-1">
+            <span class="status-dot"></span>
+            <span id="aiStatus">Ready to plan your trip</span>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <span class="badge-model">IBM Granite</span>
+      </div>
+    </div>
+
+    <!-- Messages container -->
+    <div class="chat-messages flex-grow-1 overflow-auto px-4 py-3" id="chatMessages">
+
+      <!-- Welcome message -->
+      <div class="message-row ai-row" id="welcomeMsg">
+        <div class="ai-avatar-sm"><i class="bi bi-airplane-fill"></i></div>
+        <div class="message-bubble ai-bubble">
+          <div class="bubble-content">
+            <p>👋 <strong>Welcome to WanderAI!</strong> I'm your personal AI travel companion, powered by IBM Granite.</p>
+            <p>I can help you with:</p>
+            <ul>
+              <li>🗺️ Personalised destination recommendations</li>
+              <li>📅 Day-by-day travel itineraries</li>
+              <li>💰 Budget planning &amp; cost breakdowns</li>
+              <li>🏨 Accommodation &amp; transport suggestions</li>
+              <li>🌤️ Weather &amp; best-time-to-visit advice</li>
+              <li>🎒 Packing lists &amp; travel tips</li>
+              <li>🛡️ Safety guidelines &amp; travel advisories</li>
+            </ul>
+            <p class="mb-0">Where would you like to go? Tell me your destination, budget, and interests! 🌍</p>
+          </div>
+          <div class="bubble-time">Just now</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="typing-row px-4 d-none" id="typingIndicator">
+      <div class="ai-avatar-sm"><i class="bi bi-airplane-fill"></i></div>
+      <div class="typing-bubble">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Input bar -->
+    <div class="chat-input-bar px-4 py-3">
+      <div class="input-wrapper d-flex align-items-end gap-2">
+        <!-- Context chips -->
+        <div class="input-chips d-none d-md-flex flex-column gap-1 me-1">
+          <button class="chip-btn active" id="chipGeneral" onclick="setContext('general')" title="General travel chat">
+            <i class="bi bi-chat-dots"></i>
+          </button>
+          <button class="chip-btn" id="chipItinerary" onclick="setContext('itinerary')" title="Itinerary mode">
+            <i class="bi bi-journal-text"></i>
+          </button>
+          <button class="chip-btn" id="chipBudget" onclick="setContext('budget')" title="Budget mode">
+            <i class="bi bi-wallet2"></i>
+          </button>
+        </div>
+
+        <textarea
+          id="userInput"
+          class="form-control chat-textarea"
+          placeholder="Ask me anything about travel... (Shift+Enter for new line, Enter to send)"
+          rows="1"
+          maxlength="2000"
+        ></textarea>
+
+        <button class="btn btn-send rounded-circle" id="sendBtn" onclick="sendMessage()" title="Send message">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+      <div class="input-meta d-flex justify-content-between mt-1">
+        <span class="text-muted small" id="contextLabel">Mode: General Travel Chat</span>
+        <span class="text-muted small" id="charCount">0/2000</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script>
+  // Pre-fill from URL param
+  const urlParams = new URLSearchParams(window.location.search);
+  const interest = urlParams.get('interest');
+  if (interest) {
+    setTimeout(() => {
+      document.getElementById('userInput').value =
+        `I'm interested in ${interest.replace(/\+/g,' ')} travel. Can you recommend some destinations and help me plan a trip?`;
+      adjustTextarea(document.getElementById('userInput'));
+    }, 500);
+  }
+</script>
+{% endblock %}

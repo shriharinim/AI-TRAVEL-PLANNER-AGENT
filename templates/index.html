@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}WanderAI — AI-Powered Travel Planner{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════  HERO  ══════════════ -->
+<section class="hero-section">
+  <div class="hero-overlay"></div>
+  <div class="container hero-content text-center">
+    <div class="hero-badge animate-fadein">✈️ Powered by IBM Granite AI</div>
+    <h1 class="hero-title animate-fadein-delay1">
+      Plan Your <span class="text-gradient">Dream Trip</span><br/>with AI Intelligence
+    </h1>
+    <p class="hero-subtitle animate-fadein-delay2">
+      WanderAI crafts personalised itineraries, budget plans, and destination recommendations
+      using IBM watsonx.ai — your intelligent travel companion, available 24/7.
+    </p>
+    <div class="hero-actions animate-fadein-delay3 d-flex flex-wrap gap-3 justify-content-center">
+      <a href="/chat" class="btn btn-primary btn-lg btn-glow rounded-pill px-5">
+        <i class="bi bi-chat-dots-fill me-2"></i>Start Planning with AI
+      </a>
+      <a href="/itinerary" class="btn btn-outline-light btn-lg rounded-pill px-5">
+        <i class="bi bi-journal-plus me-2"></i>Build Itinerary
+      </a>
+    </div>
+    <!-- Quick stats -->
+    <div class="hero-stats animate-fadein-delay3 d-flex flex-wrap justify-content-center gap-4 mt-5">
+      <div class="hero-stat">
+        <span class="stat-number">200+</span>
+        <span class="stat-label">Destinations</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-number">AI</span>
+        <span class="stat-label">Powered Plans</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-number">24/7</span>
+        <span class="stat-label">Travel Support</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-number">Free</span>
+        <span class="stat-label">To Use</span>
+      </div>
+    </div>
+  </div>
+  <!-- Scroll indicator -->
+  <div class="scroll-indicator">
+    <i class="bi bi-chevron-double-down"></i>
+  </div>
+</section>
+
+<!-- ══════════════  FEATURES  ══════════════ -->
+<section class="section-pad bg-surface">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <span class="section-badge">Everything You Need</span>
+      <h2 class="section-title">Your Complete Travel Toolkit</h2>
+      <p class="section-sub">From destination discovery to day-by-day planning — WanderAI handles it all.</p>
+    </div>
+    <div class="row g-4">
+      {% set features = [
+        ("bi-chat-dots-fill", "accent", "AI Travel Chat", "Ask anything — destination advice, visa info, safety tips, local customs — your Granite-powered companion knows it all.", "/chat", "Chat Now"),
+        ("bi-journal-richtext", "purple", "Itinerary Planner", "Generate detailed day-by-day itineraries with activities, restaurants, transport, and estimated costs.", "/itinerary", "Plan Trip"),
+        ("bi-wallet2", "green", "Budget Planner", "Set your total budget and get a smart breakdown with money-saving strategies tailored to your destination.", "/budget", "Plan Budget"),
+        ("bi-grid-1x2", "orange", "Travel Dashboard", "View your complete trip summary — itinerary, budget, accommodation, weather, and checklist in one place.", "/dashboard", "View Dashboard"),
+        ("bi-compass", "blue", "Destination Finder", "Discover destinations matched to your interests, budget, and travel season with hidden gem recommendations.", "/chat", "Discover"),
+        ("bi-person-badge", "teal", "Travel Profile", "Save your preferences — favourite destinations, budget style, travel interests — for faster personalised planning.", "/profile", "My Profile"),
+      ] %}
+      {% for icon, color, title, desc, link, cta in features %}
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card card-hover h-100">
+          <div class="feature-icon icon-{{ color }}">
+            <i class="bi {{ icon }}"></i>
+          </div>
+          <h3 class="feature-title">{{ title }}</h3>
+          <p class="feature-desc">{{ desc }}</p>
+          <a href="{{ link }}" class="feature-link">{{ cta }} <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  HOW IT WORKS  ══════════════ -->
+<section class="section-pad">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <span class="section-badge">Simple & Fast</span>
+      <h2 class="section-title">Plan in 3 Easy Steps</h2>
+    </div>
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <div class="steps-list">
+          <div class="step-item">
+            <div class="step-number">01</div>
+            <div class="step-body">
+              <h4>Tell WanderAI Your Dream</h4>
+              <p>Share your destination, dates, budget, number of travelers, and interests through our AI chat or quick form.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">02</div>
+            <div class="step-body">
+              <h4>AI Crafts Your Perfect Plan</h4>
+              <p>IBM Granite generates a personalised itinerary with day-by-day activities, accommodation options, budget breakdown, and packing list.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">03</div>
+            <div class="step-body">
+              <h4>Explore, Refine & Go!</h4>
+              <p>View your full travel dashboard, ask follow-up questions to refine your plan, and set off on your adventure.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="demo-chat-preview card-hover">
+          <div class="demo-chat-header">
+            <div class="demo-avatar"><i class="bi bi-airplane-fill"></i></div>
+            <div>
+              <div class="demo-name">WanderAI</div>
+              <div class="demo-status"><span class="status-dot"></span> Online</div>
+            </div>
+          </div>
+          <div class="demo-chat-body">
+            <div class="demo-bubble user-bubble">
+              I want to visit Japan for 10 days in cherry blossom season. Budget $2,500. Interested in culture and food.
+            </div>
+            <div class="demo-bubble ai-bubble">
+              <strong>🌸 Perfect timing!</strong> Japan in late March–early April is magical. Here's a quick overview for your 10-day trip:
+              <br/><br/>
+              📍 <strong>Route:</strong> Tokyo (4 days) → Kyoto (3 days) → Osaka (2 days) → Day trip to Nara
+              <br/>
+              💰 <strong>Budget:</strong> $250/day covers mid-range hotels + great food + transport
+              <br/>
+              🚅 <strong>Transport:</strong> JR Pass ($270) covers all bullet trains
+              <br/><br/>
+              Shall I build your full day-by-day itinerary? 🗓️
+            </div>
+          </div>
+          <div class="demo-chat-input">
+            <span>Ask me about any destination...</span>
+            <a href="/chat" class="btn btn-primary btn-sm rounded-pill">Try it →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  TRAVEL CATEGORIES  ══════════════ -->
+<section class="section-pad bg-surface">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <span class="section-badge">All Travel Styles</span>
+      <h2 class="section-title">What Kind of Traveler Are You?</h2>
+    </div>
+    <div class="categories-grid">
+      {% set categories = [
+        ("bi-mountains", "Adventure & Outdoor"),
+        ("bi-bank", "Cultural & Heritage"),
+        ("bi-water", "Beach & Relaxation"),
+        ("bi-egg-fried", "Food & Culinary"),
+        ("bi-tree", "Wildlife & Nature"),
+        ("bi-buildings", "Urban City Break"),
+        ("bi-people-fill", "Family & Kids"),
+        ("bi-gem", "Luxury & Wellness"),
+        ("bi-backpack", "Budget Backpacking"),
+        ("bi-hearts", "Romantic Getaway"),
+        ("bi-person-walking", "Solo Travel"),
+        ("bi-briefcase", "Business Travel"),
+      ] %}
+      {% for icon, name in categories %}
+      <a href="/chat?interest={{ name | lower | replace(' ', '+') }}" class="category-chip">
+        <i class="bi {{ icon }}"></i>
+        <span>{{ name }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════  IBM WATSONX BADGE  ══════════════ -->
+<section class="section-pad">
+  <div class="container">
+    <div class="ibm-badge-section">
+      <div class="row align-items-center g-4">
+        <div class="col-md-2 text-center">
+          <div class="ibm-logo-circle">
+            <span>IBM</span>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <h3 class="ibm-badge-title">Powered by IBM watsonx.ai &amp; IBM Granite</h3>
+          <p class="ibm-badge-desc">
+            WanderAI uses IBM Granite foundation models running on IBM watsonx.ai — enterprise-grade AI
+            that is transparent, trustworthy, and built for responsible deployment. Your travel data
+            stays private and your plans are generated with cutting-edge language intelligence.
+          </p>
+        </div>
+        <div class="col-md-3 text-center">
+          <a href="/chat" class="btn btn-primary btn-lg rounded-pill px-4">
+            <i class="bi bi-lightning-fill me-2"></i>Start for Free
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
