@@ -112,7 +112,7 @@ Fill in these required values in `.env`:
 
 ```env
 WATSONX_API_KEY=your_ibm_cloud_api_key_here
-WATSONX_URL=https://us-south.ml.cloud.ibm.com
+WATSONX_URL=your_watsonx_url_here
 WATSONX_PROJECT_ID=your_project_id_here
 GRANITE_MODEL_ID=ibm/granite-3-8b-instruct
 FLASK_SECRET_KEY=your_random_secret_key_here
