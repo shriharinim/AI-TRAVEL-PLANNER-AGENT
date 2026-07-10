@@ -4,6 +4,9 @@
 > Plan trips, generate itineraries, manage budgets, and get personalised travel advice — all through an intelligent AI companion.
 
 ---
+## Live Demo
+
+https://ai-travel-planner-agent-maga.onrender.com
 
 ## 📸 Features at a Glance
 
